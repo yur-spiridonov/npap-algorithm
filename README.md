@@ -189,7 +189,7 @@ Further, the symbol **« ⇒ »** means conversion from the format of a normaliz
 
 ## Test Program
 
-See the complete, verified implementation: [`npap_test.cpp`](npap_test.cpp)
+See the full C++ implementation: [`npap_test.cpp`](npap_test.cpp)
 
 The program demonstrates **bit-identical results** with IEEE 754 `double` on real-world data that cannot be exactly represented in binary.
 
