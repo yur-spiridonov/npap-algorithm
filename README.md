@@ -1,4 +1,5 @@
-# Alternative Algorithm for Summing Decimal Numbers in Binary Arithmetic
+# An Alternative Algorithm for Summing Any Decimal Numbers in Binary Arithmetic
+**NPAp — Number with Point After p: Full IEEE 754 Compatibility via Integer Arithmetic**
 
 Any number **X** can be represented with infinite precision as an infinite number of integer **K** (0 ≤ K < ∞) infinitesimal intervals **ɛ**. The interval **ɛ** can be expressed as decimal **ɛ₁₀**, binary **ɛ₂**, or, in general, **ɛ** in any number system. For decimal **ɛ₁₀** → 0 and binary **ɛ₂** → 0 **K₁₀** → ∞, **K₂** → ∞ and then decimal **±K₁₀ɛ₁₀** with infinite precision will be equal to binary **±K₂ɛ₂**. In other words, any infinitely precise decimal **X₁₀** with infinite precision equals its binary equivalent **X₂**.
 
