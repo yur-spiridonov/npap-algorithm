@@ -197,7 +197,7 @@ The program demonstrates **bit-identical results** with IEEE 754 `double` on rea
 ## Publication
 
 **Iouri Spiridonov**  
-*Alternative Algorithm for Summing Decimal Numbers in Binary Arithmetic*  
+*Binary and Decimal Number Systems in Decimal Computations*  
 **TechRxiv**, 17 November 2025  
 DOI: [10.36227/techrxiv.175978514.43264211/v1](https://doi.org/10.36227/techrxiv.175978514.43264211/v1)
 
