@@ -203,7 +203,7 @@ DOI: [10.36227/techrxiv.175978514.43264211/v1](https://doi.org/10.36227/techrxiv
 
 @preprint{Spiridonov2025,
   author    = {Spiridonov, Iouri},
-  title     = {Alternative Algorithm for Summing Decimal Numbers in Binary Arithmetic},
+  title     = {Binary and Decimal Number Systems in Decimal Computations},
   year      = {2025},
   month     = nov,
   publisher = {TechRxiv},
