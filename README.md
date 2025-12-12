@@ -1,213 +1,328 @@
 # An Alternative Algorithm for Summing Any Decimal Numbers in Binary Arithmetic
-**NPAp — Number with Point After p: Full IEEE 754 Compatibility via Integer Arithmetic**
 
-Any number **X** can be represented with infinite precision as an infinite number of integer **K** (0 ≤ K < ∞) infinitesimal intervals **ɛ**. The interval **ɛ** can be expressed as decimal **ɛ₁₀**, binary **ɛ₂**, or, in general, **ɛ** in any number system. For decimal **ɛ₁₀** → 0 and binary **ɛ₂** → 0 **K₁₀** → ∞, **K₂** → ∞ and then decimal **±K₁₀ɛ₁₀** with infinite precision will be equal to binary **±K₂ɛ₂**. In other words, any infinitely precise decimal **X₁₀** with infinite precision equals its binary equivalent **X₂**.
+Any number **X** can be represented as an infinite integer **K** (0 ≤ K < ∞) of infinitesimal intervals **ɛ**.
 
-In numerical arithmetic, **X** is a number with finite **K** and **ɛ**. For incommensurable decimal and binary number systems — **X₁₀ ≠ X₂**.
+The interval **ɛ** can be a decimal **ɛ₁₀** or binary **ɛ₂** number, or, in general, a number in any number system.
 
-In any number system, **K** is defined as:
-K = Rnd(X / ɛ)
-textwhere **Rnd** means rounding to the nearest.
+For a finite decimal **X**, the equality holds: **X = S·K₁₀·ɛ₁₀**, where **S = 1** or **−1**, **K₁₀** and **ɛ₁₀** — decimal numbers.
 
-As **ɛ**, we take the minimum possible value that is guaranteed to be less than or equal to the minimum expected result **Xmin**. For example, if **β = 10** **Xmin = 0.00000123**, then for simplicity of calculations, it is most convenient to take **ɛ = 0.000001 = 10⁻⁶**. If **β = 10** **Xmin = 123**, then it is most convenient to take **ɛ = 100 = 10²**.
+For a finite binary **Y**, the equality holds: **Y = S·K₂·ɛ₂**, where **S = 1** or **−1**, **K₂** and **ɛ₂** — binary numbers.
 
-Thus:
-ɛ = βᵉᵐⁱⁿ
-textwhere **β** — number system (base), **emin** — minimum possible exponent.
+As **ɛ₁₀ → 0** and **ɛ₂ → 0**, **K₁₀ → ∞** and **K₂ → ∞**, and then **S·K₁₀·ɛ₁₀ = S·K₂·ɛ₂**. That is, for any infinitely precise decimal **X** there exists a binary **Y** that is infinitely precisely equal to **X**.
 
-All digits in **X**, starting from the first non-zero, including sometimes trailing zeros, are called **significant digits**.
+Any finite decimal or binary **K** (except **K = 0**) contains a certain number **j** of significant digits.
 
-Any **X** can be represented in exponential form:
-X = ±0.Kβᵉ
-textwhere **±0.K** — mantissa of number **X**, **e** — exponent, determining the position of the **radix point** in **X** written in natural form, relative to the position of the **radix point** in **X** written in exponential form.
+Significant digits are all non-zero digits in **X**, starting from the first non-zero one, and trailing zeros if the number is integer. For example, 0.00123 has three significant digits, 12300 has five significant digits.
 
-If the first most significant digit in **K** is non-zero, then **X** is called a **normalized number**.
+### Representation of a number in normalized exponential form in the operational register
 
-As a rule, arithmetic calculations are performed with accuracy to a given number of significant digits **p**. Calculations will be correct if these **p** digits are reliable.
+The form of recording any **X** in exponential form, in which the first non-zero significant digit follows the radix point, is called the normalized format.
 
-An approximate **X̃**, which differs from the true value of **X** by no more than half the least significant digit of **K**, is called **reliable**.
+For brevity, under the abbreviation "NF X" we will understand — the format of the number **X** in normalized form.
 
-**Representation of normalized X in the processor's operational register**
+NF **X** is written as  
+**X = S·0.K·β^e**  
 
-In computer calculations, operational registers with a finite number of digits are used.
+where **0.K** — mantissa, **K** — integer consisting of **j** significant digits of the number written in natural form, **β** — number system (base), **e** — exponent determining the position of the radix point in **X** represented in natural form relative to the position of the radix point in **X** written in exponential form.
 
-To perform arithmetic operations on normalized numbers, **X = ±0.Kμ** must be written to the processor's operational register. For this, four areas are allocated in the operational register — **S**, **m**, **s**, **w**. Where one bit is allocated for the sign **S** of the number, **m** bits are allocated for the integer **K** of the fractional mantissa **0.K**, one bit **s** is allocated for the sign of the exponent **e**, and **w** bits are allocated for **e**.
+For example, for 0.001234, **j = 4**, then **K = 1234**, and NF **X** = 0.1234·10⁻².
+
+For **X** in NF, where **K** is an integer with **j** significant digits, the inequality holds:  
+**β^(j−1) ≤ K < β^j − 1**.
+
+Since **K ≠ 0**, **K = 0** is a special case for such representation.
+
+For **X** represented in NF, four areas are allocated in the operational register — **S**, **p**, **s**, **w**. One digit is allocated for the sign **S** of the number, **p** digits for **K̃** which is the closest to **K**, one digit **s** for the sign of the exponent **e**, and **w** digits for the exponent **e**.
 
 The location of the areas in the register can be arbitrary and depend on the implementation.
 
-In the **m**-bit area of the register, the maximum integer can be written — **Kₘₐₓ = βᵐ -1**.
+The maximum integer that can be written into the **p**-digit area of the register is **K̃_max = β^p − 1**.
 
-In the **w**-bit area of the register, the maximum integer can be written — **eₘₐₓ = βʷ -1**.
+The maximum integer that can be written into the **w**-digit area of the register is **e_max = β^w − 1**.
 
-If all **p** significant digits of the mantissa **0.K** can be written to the **m**-bit area of the register, and all digits of **e** can be written to the **w**-bit area, then **X** is called **representable**. For representable numbers — **K ≤ Kₘₐₓ** and **e ≤ eₘₐₓ**.
+If all **j** digits of **K** of NF **X** fit into the **p**-digit area of the register, and all digits of its exponent **e** fit into the **w**-digit area, then such **X** is called representable. For representable numbers — **K ≤ K̃_max** and **e ≤ e_max**.
 
-If **p** digits of **K** cannot be written to the **m**-bit register without losing the least significant digits and/or all digits of the exponent **e** of number **X** cannot be written to the **w**-bit area, then such **X** is called **non-representable**.
+If **K > K̃_max**, then **K** cannot be written into the **p**-digit register without losing least-significant digits and/or if **e > e_max**, then all digits of the exponent **e** of NF **X** cannot be written into the **w**-digit area. In this case, **X** is a non-representable number.
 
-**X** is a non-representable number if **K > Kₘₐₓ** and/or **e > eₘₐₓ**.
+If **K > K̃_max**, **e < e_max**, then to write the value of **K** into the **p**-area of the register, it is necessary to reduce the number **j** of digits in **K** by rounding it to the closest **K̃** with **p** significant digits.
 
-Digits of the mantissa **0.K** that go beyond the **w** digits of the operational register are discarded, and **0.K** is rounded to the nearest **0.K′** with **w** significant digits. As a result, the register records:
-X̃ = ±0.K′μ
-textIf **|X̃| > Kₘₐₓβᵉᵐᵃˣ**, then **X̃** is sometimes called infinitely large.
+For example, if **p = 2**, then for **X = 0.1234·10⁻³**, where **K = 1234** has **j = 4** digits, after rounding to **p = 2** significant digits **K̃ = 12** and **X̃ = 0.12·10⁻³**.
 
-If for **X̃ = ±0.K′βᵉᵐⁱⁿ** the first digit in **K′** is zero, then **X̃** in the classical representation is considered a **subnormal number**.
+If **e > e_max**, then **X̃** is sometimes considered infinitely large.
 
-Sometimes, for example in the IEEE754 standard, to obtain the ability to write additional information to computer memory, such as — **NAN**, **0**, **∞** and other auxiliary information, **emin = (emax -1)** is accepted.
+In the IEEE 754 standard, special cases such as NaN, ±0, and ±∞ are encoded with a special number with exponent **e_min = −e_max + 1**.
 
-**Format of a number with a radix point after the p-th significant digit in X**
+### NPAt format
 
-It is easiest to count significant digits in **X** in a normalized number, in which the first non-zero digit is located immediately after the **radix point**.
+Assume we have NF **X̃ = S·0.K̃·β^e**, in which **K̃** contains **p** digits.
 
-If the **radix point** in the normalized **X** is shifted **p** digits to the right and the exponent is adjusted, then we get:
-X = ±K′βᵉ⁻ᵖ
-textwhere **K′** can be a fractional number with an integer part consisting of **p** digits.
+As described above, this number is written into the operational register in four areas — (**S**, **p**, **s**, **w**).
 
-Rounding **K′** to an integer **K̂** with **p** significant digits, we get:
-X̂ = ±K̂μ
-text**X̂**, written in this way, is an approximate number with a scale factor:
-μ = βᵛ
-textwhere **v = e – p** is the exponent determining the position of the **radix point** in **X** written in natural form, relative to the position of the **radix point** in **X**, offset from the **radix point** of the normalized number by **p** digits to the right.
+It is assumed that the radix point in NF **X̃** is placed before the most significant non-zero digit **K̃**. In this case, the fractional **0.K̃** contains **p** digits.
 
-During transformations, the scale factor **μ** can change when the parameter **v** changes. For example, when aligning exponents during addition.
+If we assume that the radix point is placed after the least-significant digit of the integer **K̃**, then to keep the value of **X̃** unchanged, the exponent **e** must be decreased by **p**. **X** will now look like  
+**X̂ = S·K̂·β^(e−p)**
 
-If after shifting the **radix point** in the normalized **X** **p** digits to the right, it turns out that **K > Kₘₐₓ**, then the least significant digits of **K** that go beyond the **m**-th least significant digit of the register must be discarded by rounding to the nearest integer **K̂**. As a result, we will have:
-X̂ = ±K̂βᵉ
-text**X̂** means that in the process of transforming **X**, non-zero significant digits in **K** were lost and **X̂** is an approximate number with an integer mantissa **±K̂**, in which there are **p** significant digits.
+Assume that the radix point in the **p**-area of the register is placed after the digit with number **t ≤ p**. Where **t** is counted from left to right from the first most significant digit of the **p**-area of the register. Then, to keep the value of **X** unchanged, the exponent **e** in the normalized **X̃** must be decreased by **t**. **X** will now be represented as  
+**X = S·K′·β^(e−t)**
 
-In the case where **X** contains **p ≤ m** significant digits, then the normalized **X** will be an exact number. Shifting the **radix point** in such **X** **p** digits to the right does not lead to the loss of non-zero digits, and such a number remains exact.
+In this expression, **K′ < K** will contain an integer non-zero part with **f** digits, the number of which coincides with the number of digits in the **t**-area of the operational register. Round **K′** to the closest integer **K̂**. The result will be  
+**X̂ = S·K̂·β^(e−t)**,  
+which will be the closest to **X** with **f** significant digits.
 
-Exact numbers will be denoted by the symbol **X̄**. The exact **X̄** is a special case of **X̂**.
+Note that the radix point is defined not by the number of digits **f** in **K̂**, but by the number of digits **t** in the **t**-area of the operational register. This is explained by the fact that in arithmetic transformations there can be cases when **f < t**. For example, when subtracting numbers close in value.
 
-**X̂** and **X̄** with a **radix point** after the **p**-th significant digit in the normalized number will be briefly called a **number with point after p (NPAp)** and denoted — **X̂** or **X̄**.
+The number written into the operational register **X̂** with integer **K̂** can be considered a number with the radix point after the **t**-th digit. **X̂** will be briefly called a number with point after **t** (NPAt).
 
-**Example.** If **X = 0.001234**, then the normalized **X = 0.1234·10⁻²**, in which **e = -2**. If **p = 3**, then **v = -2 - 3 = -5**. Then **X = 123.4·10⁻⁵** and **X̂ = 123·10⁻⁵**, **μ = 10⁻⁵**. If **X = 0.00123**, then the normalized **X = 0.123·10⁻²**, in which **e = -2**. If **p = 3**, then **v = -2 – 3 = -5**. Then **X = 123·10⁻⁵** and **X̄ = 123·10⁻⁵**, **μ = 10⁻⁵**.
+Since the first **t** digits of the operational register form the **t**-area for writing **K̂**, the **p**-area of the register can guarantee representation of **K̂** with a maximum of **t** digits.
 
-**Representation of NPAp in the operational register**
+By setting **t < p**, we thereby reduce the number of digits by which **X** can be represented, while maintaining the maximum reliability of **f** digits in **K̂**.
 
-In the operational register for writing **NPAp**, as well as for normalized numbers, four areas are allocated — **S**, **m**, **s**, **w**. In **NPAp**, these register areas are interpreted as: **S** — sign of the number, **m**-area of the operational register, into which **K̂** or **K̄** is written; **s** — sign of the parameter **v**;
+This allows easy organization of processing numbers with different precision **t ≤ p** on the same operational register with **p**-area.
 
-The values **p** and **β** in the operational register are not stored, but are constants that are set based on the task conditions. These constants do not participate in calculations, but are used only for converting a normalized number to **NPAp**, as well as for outputting the calculation result to the terminal in an acceptable form.
+Denote **q = (e − t)**. Then **X̂** can be written as  
+**X̂ = S·K̂·β^q**.
 
-**Properties of NPAp and normalized floating-point numbers**
+The coefficient **q** determines the maximum number of significant digits **t** that the integer **K̂** in the rounded **X̂** can contain. **q** will be called the rounding coefficient (RC).
 
-The interval that covers positive floating-point numbers of the form **X = 0.Kβᵉ** is divided into two areas. The area of normalized numbers:
-βᵉᵐⁱⁿ ≤ X < Kₘₐₓβᵉᵐᵃˣ
-textAnd the area of denormalized (subnormal) numbers:
-βᵉᵐⁱⁿ⁻ᵖ ≤ X < Kₘₐₓβᵉᵐⁱⁿ – ᵖ
-textIn this representation, zero is an exceptional case; **emin = - emax**.
+Denote  
+**μ = β^q**.
 
-The interval of positive numbers that **NPAp** covers is:
-βᵛᵐⁱⁿ ≤ X̂ < Kₘₐₓβᵛᵐᵃˣ
-textwhere **vmax = emax - p**. When **K = 0**, **X̂ = 0**. Zero is represented here in explicit form.
+Then **μ** can be interpreted as the scaling factor, and NPAt can be written as  
+**X̂ = S·K̂·μ**.
 
-The maximum number of digits of the mantissa **K** of **NPAp** that can be written to the **p**-bit area of the operational register is determined by the maximum number of **p** bits of this register area.
+**Example.** Suppose we are performing calculations in a decimal processor in which the **p**-area of the operational register contains **p = 4** digits. Let us have NF  
+**Z = 0.12346…·10⁻⁴** with **j > p** significant digits. Then the closest to **Z** number NF **X = 0.1235·10⁻⁴** with exponent **e = −4** can be written into the **p**-area. Thus, after rounding the mantissa of number **Z**, **K = 1235** will be written into the **p**-area of the register.
 
-The maximum **Kₘₐₓ** that can be written to the **p**-bit area is:
-Kₘₐₓ = βᵖ – 1
-textTo write to the operational register **X** with **K > Kₘₐₓ**, you need to reduce **K** and increase the scale **μ**.
+Suppose further that we want to perform calculations with precision up to **t = 2** significant digits. To do this, represent **X** in NPAt format. For **t = 2** we get **K′ = 12.35**, which after rounding gives **K̂ = 12**. Define RC **q = (e − t) = −6**, then **μ = 10⁻⁶**. The result is NPAt **X̂ = 12·10⁻⁶**, in which **f = 2** digits.
 
-The scale **μ** for normalized **X** can change in the range:
-βᵉᵐⁱⁿ ≤ μ ≤ βᵉᵐᵃˣ
-textThe scale **μ** for **NPAp** can change depending on the implementation (set **p**) in the range:
-βᵛᵐⁱⁿ ≤ μ ≤ βᵛᵐᵃˣ
-textwhere **vmax = emax + p**.
+In the operational register for writing **X̂**, as well as for NF **X̃**, four areas are allocated — **S**, **p**, **s**, **w**. The sign of the number **X** is written into area **S**; **f** digits of the integer coefficient **K̂** or zero are written into the **t**-area of the operational register; the sign of RC **q** is written into area **s**; RC **q** is written into **w**.
 
-The maximum number **p** of possible significant digits of **NPAp X̂** is set by the user in accordance with the task conditions and the number of bits of the operational register under **K**. The value **p** in calculations with **NPAp** is not explicitly present.
+These parameters determine the value of NPAt — **X̂ = S·K̂·μ**.
 
-**Example of choosing parameters for NPAp**
+If there were no losses of non-zero significant digits when rounding **K′**, then NPAt is an exact number, which we will denote by the symbol **X̄**. Exact **X̄** are a subset of NPAt **X̂**.
 
-Let's represent **NPAp** with accuracy to 2 significant digits for decimal numbers (**β = 10**) that lie in the interval **0.00123…156**. In normalized form, they will be represented as — **0.123·10⁻²…156·10³**, where **emin = -2**, **emax = 3**. To ensure accuracy to 2 significant digits, at least two bits must be allocated in the operational register for writing **K** (**p = 2**). In a two-bit register, all integers with two significant digits from one to **Kₘₐₓ = 10² – 1 = 99** can be guaranteed to be written. For the left and right boundaries of **NPAp**, we find — **vmin = emin - p = -2-2 = -4**, **vmax = emax - p = 3-2 = 1**. In **NPAp** format, the interval for the numbers under consideration will look like — **12·10⁻⁴…16·10¹**. It follows that to represent decimal **NPAp** that lie in the interval **0.00123…156** with accuracy to 2 significant digits, the operational register must provide one bit for writing the sign **S** of the number **X**, **p = 2** bits for writing the mantissa **K̂**, one bit for the sign **s** of the parameter **v**, as well as **w** bits for **v**. The parameter **v** is determined by choosing the maximum value among **|vmin|** and **|emax|**. In our case, the maximum value is **|emin| = 4**. Since in one decimal bit (**w = 1**) the maximum **10¹-1= 9** can be written, then **|emin| = 4** can be guaranteed to be written to this bit. The interval of decimal numbers **0.00123…156** with accuracy to **p = 2** significant digits, as a result of conversion to **NPAp** format, will have the form — **12·10⁻⁴…16·10¹**. To have all **NPAp** from this interval represented in the operational register, the register must have a bit depth of at least — **S+p+s+w = 1+2+1+1 = 5**.
+In general, **K̂** during calculations can have **0 ≤ f ≤ t** digits and can take any integer value in the interval  
+**0 ≤ K̂ < K̂_max**  
+where **K̂_max = β^t − 1**.
 
-**Examples of summing NPAp**
+**Examples:**
+1. If in natural form **X = 0.0123**, then in normalized form **X = 0.123·10⁻¹**. For **t = 2** we will have RC **q = −1 − 2 = −3** and then **μ = 10⁻³**. The result is NPAt **X̂ = 12·10⁻³**.
+2. For **X = 12000** in normalized form **X = 0.120·10⁵**. For **t = 2** we will have RC **q = 5 − 2 = 3** and then **μ = 10³**. The result is NPAt **X̄ = 12·10³**.
+3. For **X = 2** in normalized form **X = 0.200·10¹**. For **t = 3** we will have RC **q = 1 − 3 = −2**, **μ = 10⁻²**. And since there was no rounding, NPAt will be exact **X̄ = 200·10⁻²** or **X̄ = 2**.
 
-The summation algorithm implemented on **NPAp** strictly obeys the arithmetic rules of addition of finite numbers, which in most cases give an approximate result.
+### NPAt vs normalized
 
-Let's find the sum of normalized — **X = X₁ + X₂** and **NPAp** — **X̂ = X̂₁ + X̂₂** in a decimal adder (**β = 10**) with **p = 2**.
+The maximum positive **X** that can be represented in NF **X̃** equals  
+**X̃_max = 0.K̃_max·β^(e_max)**  
 
-Further, the symbol **« ⇒ »** means conversion from the format of a normalized number to **NPAp**.
+For NF **X̃** in the operational register with **p**-area, the maximum that can be written is  
+**0.K̃_max ≈ 1**  
 
-1. Let **X₁ = 0.0234**, **X₂ = 0.00123**.  
-   **The correct sum with accuracy p = 2 will be** —  
-   **X = 0.0234 + 0.00123 = 0.02463 ≈ 0.25·10⁻¹**.  
-   **The sum of normalized numbers rounded to p = 2 will be** —  
-   **X₁ = 0.234·10⁻¹**, **X₂ = 0.123·10⁻²**, where **e₁ = -1**, **e₂ = -2**.  
-   **X̃₁ = 0.23·10⁻¹**, **X̃₂ = 0.12·10⁻²**  
-   **X̃₁ + X̃₂ = 0.23·10⁻¹ + 0.12·10⁻² = 0.23·10⁻¹ + 0.012·10⁻¹ = 0.242·10⁻¹ ≈ 0.24·10⁻¹**  
-   **Sum of NPAp X̂ = X̂₁ + X̂₂ with accuracy p = 2**:  
-   **X̃₁ = 0.23·10⁻¹ ⇒ X̂₁ = 23·10⁻¹⁻ᵖ**, **X̃₂ = 0.12·10⁻² ⇒ X̂₂ = 12·10⁻²⁻ᵖ**.  
-   **X̂₁ + X̂₂ = 23·10⁻¹⁻ᵖ + 12·10⁻²⁻ᵖ = 23·10⁻¹⁻ᵖ + 1.2·10⁻¹⁻ᵖ ≈ 24·10⁻¹⁻ᵖ**, hence **X̂ = 24·10⁻³**
+Then the maximum positive **X** that can be represented in NF **X̃** equals  
+**X̃_max ≈ β^(e_max)**  
 
-2. Let **X₁ = 1230**, **X₂ = 234**.  
-   **The correct sum with accuracy p = 2 will be** —  
-   **X = 1230 + 234 = 1464 ≈ 15·10²**  
-   **The sum of normalized numbers rounded to p = 2 will be** —  
-   **X₁ = 0.123·10⁴**, **X₂ = 0.234·10³**, where **e₁ = 4**, **e₂ = 3**.  
-   **X̃₁ = 0.12·10⁴**, **X̃₂ = 0.23·10³**  
-   **X̃₁ + X̃₂ = 0.12·10⁴ + 0.23·10³ = 0.12·10⁴ + 0.023·10⁴ = 0.143·10⁴ ≈ 0.14·10⁴ = 14·10²**  
-   **Sum of NPAp X̂ = X̂₁ + X̂₂ with accuracy p = 2 will be** —  
-   **X̃₁ = 0.12·10⁴ ⇒ X̂₁ = 12·10⁴⁻ᵖ**, **X̃₂ = 0.23·10³ ⇒ X̂₂ = 23·10³⁻ᵖ**.  
-   **X̂₁ + X̂₂ = 12·10⁴⁻ᵖ + 23·10³⁻ᵖ = 12·10⁴⁻ᵖ + 2.3·10⁴⁻ᵖ ≈ 14·10⁴⁻ᵖ**, hence **X̂ = = 14·10²**
+According to the definition, the minimum **K̃_min** in NF **X̃** is  
+**K̃_min = 1**  
 
-3. Let **X₁ = 0.00123**, **X₂ = -0.00122**.  
-   **The correct difference with accuracy p = 2 will be** —  
-   **X = 0.00123 - 0.00122 = 0.00001 = 10⁻⁵**  
-   **The sum of normalized numbers rounded to p = 2 will be** —  
-   **X₁ = 0.123·10⁻²**, **X₂ = 0.122·10⁻²**, where **e₁ = -2**, **e₂ = -2**.  
-   **X̃₁ = 0.12·10⁻²**, **X̃₂ = 0.12·10⁻²**  
-   **X̃₁ - X̃₂ = 0.00·10²** — exceptional case  
-   **Sum of NPAp X̂ = X̂₁ + X̂₂ with accuracy p = 2 will be** —  
-   **X̃₁ = 0.12·10⁻² ⇒ X̂₁ = 12·10⁻²⁻ᵖ**, **X̃₂ = 0.12·10⁻² ⇒ X̂₂ = 12·10⁻²⁻ᵖ**.  
-   **X̂₁ + X̂₂ = 12·10⁻²⁻ᵖ - 12·10⁻²⁻ᵖ = 0·10⁻²⁻ᵖ**, hence **X̂ = 0·10⁻⁴ = 0** — explicit zero.  
-   Subtraction (12-12) can be performed in two's complement code.
+Then the minimum positive **X** that can be represented in NF **X̃** equals  
+**X̃_min = 0.1·β^(e_min) = β^(e_min−1)**  
 
-4. Let **X₁ = 23**, **X₂ = -22**.  
-   **The correct difference** — **X = 23 - 22 = 1**  
-   **The sum of normalized numbers rounded to p = 2 will be** —  
-   **0.23·10² – 0.22·10² = 0.01·10² = 0.1·10¹** (after normalization)  
-   **Sum of NPAp X̂ = X̂₁ + X̂₂ with accuracy p = 2 will be** —  
-   Then **X₁ = 0.23·10² ⇒ X̂₁ = 23·10²⁻ᵖ**, **X₂ = 0.22·10² ⇒ X̂ = 22·10²⁻ᵖ**.  
-   Find — **23·10²⁻ᵖ - 22·10²⁻ᵖ = 1·10²⁻ᵖ**, hence **X̂ = 1·10⁰**.  
-   Subtraction (23-22) can be performed in two's complement code, since 23, 22 — integers.
+Or, if **e_min = −e_max**, then  
+**X̃_min = β^(e_min−1)**  
 
-## Summary
+Thus, the range of coefficient values is approximately  
+**X̃_max / X̃_min ≈ β^e_max / β^(-e_max−1) = β^(2e_max+1)**  
 
-1. Any normalized floating-point number **X = ±0.Kμ**, where **K** is an integer, can be represented in **NPAp** format as **X̂ = ±K̂μ** or **X̄ = ±K̄μ**, where **μ** is an integer scale factor.
+Now consider **X** in NPAt format. The maximum positive **X** that can be represented in NPAt **X̂** equals  
+**X̂_max = K̂_max·β^(q_max)**  
 
-2. The range of representable numbers in **NPAp** lies in the interval **βᵛᵐⁱⁿ ≤ |X̂| < Kₘₐₓβᵛᵐᵃˣ** or equals zero, where **vₘₐₓ = eₘₐₓ + p**.
+If **K̂_max** contains **t = p** digits, then the maximum positive **X** that can be represented in NPAt **X̂** equals  
+**K̂_max = β^t − 1 ≈ β^t**  
 
-3. Integer numbers in **NPAp** have the form **X̄ = ±K̄β⁰** and are a special case of the format. Additionally:  
-   - **K = 0** → explicit zero (independent of v and S)  
-   - **v > vₘₐₓ**, **K ≠ 0** → **+∞**  
-   - **v < vₘᵢₙ**, **K ≠ 0** → **−∞**  
-   Thus, **NPAp** naturally supports **±∞** via exponent overflow/underflow — without special reserved bit patterns.
+And the maximum positive **X** that can be represented in NPAt **X̂** equals  
+**X̂_max = β^(q_max + t)**  
 
-4. All **NPAp** parameters (**S**, **K**, **s**, **v**) are integers or zero → all operations use two’s-complement integer arithmetic.
+The minimum number that can be written into the **p**-area of the operational register is  
+**K̂_min = 1 or 0.**  
 
-5. For an exact number **X̄ = Sμ·K = 0**, the value is **explicit zero** — reliably detectable without normalization.
+And the minimum positive **X** that can be represented in NPAt **X̂** equals  
+**X̂_min = β^q_min or 0.**  
 
-6. Normalization in **NPAp** is required **only on exponent overflow/underflow**. Leading zeros in **K** do not require renormalization (they do not change the value).
+If **q_min = −q_max**, then  
+**X̂_min = β^(-q_max)**  
 
-7. **NPAp** computations can be fully implemented on a CPU using **only integer instructions** — **no FPU required**.
+Then the range of values of **K̂** in NPAt **X̂** is approximately  
+**X̂_max / X̂_min ≈ β^(q_max + t) / β^(-q_max) = β^(2q_max + t)**  
 
-## Test Program
+It is easy to see that the range of possible values of **X̂** in NPAt exceeds the range of NF **X̃** by β^(t−1) times.
 
-See the full C++ implementation: [`npap_test.cpp`](npap_test.cpp)
+To avoid a sharp "cut-off" of the range of representable values near zero when **e = e_min** and to ensure the so-called gradual underflow, the IEEE 754 standard introduces special subnormal numbers in which **K̃ ≠ 0** at **e = e_min** with leading zeros in the most significant digits. Special algorithms are developed for working with subnormal numbers.
 
-The program demonstrates **bit-identical results** with IEEE 754 `double` on real-world data that cannot be exactly represented in binary.
+In NPAt, such a problem does not exist, since **K̂** can take any value from 1 to β^t − 1 or zero for all **e** from **e_min** to **e_max**.
 
-## Publication
+The maximum value that can be written into the **w**-digit area of the operational register is  
+**W = β^w − 1.**
 
-**Iouri Spiridonov**  
-*Binary and Decimal Number Systems in Decimal Computations*  
-**TechRxiv**, 17 November 2025  
-DOI: [10.36227/techrxiv.175978514.43264211/v1](https://doi.org/10.36227/techrxiv.175978514.43264211/v1)
+Since the maximum value that can be written into the **w**-digit area of the operational register for NF **X̃** is  
+**e_max = W,**  
 
-@preprint{Spiridonov2025,
-  author    = {Spiridonov, Iouri},
-  title     = {Binary and Decimal Number Systems in Decimal Computations},
-  year      = {2025},
-  month     = nov,
-  publisher = {TechRxiv},
-  doi       = {10.36227/techrxiv.175978514.43264211.v1},
-  url       = {https://doi.org/10.36227/techrxiv.175978514.43264211.v1},
-  note      = {Preprint}
-}
+and, taking into account the sign **s**, the minimum exponent value will be  
+**e_min = −e_max.**  
+
+Then the exponent **e** can take any value in the interval  
+**−W ≤ e < W.**
+
+For NPAt **X̂**, the rounding coefficient **q** is written into the **w**-digit area of the operational register, which also takes any value in the interval  
+**−W ≤ q < W.**
+
+Its maximum value will be  
+**q_max = W,**  
+
+Taking into account the sign **s**, the minimum value of the rounding coefficient **q** will be  
+**q_min = −W.**  
+
+Since **q = e − t**, the rounding coefficient **q** can take any value from the interval  
+**−(e_max + t) ≤ q ≤ e_max − t.**
+
+Since when **K̂ = 0** in NPAt **X = 0**, taking into account that **−e_max = e_min**, in the case **e_min < t** and **K̂ ≠ 0**, **X** can be considered an infinitely small number.
+
+If **X** is represented in NPAt format — **X̂ = S·K̂·μ**, then to represent **X** in NF **X̃**, the radix point in **K̂** must be shifted **t** digits to the left and the rounding coefficient **q** in **μ = β^q** must be increased by **t**.
+
+For example, NPAt **X̂ = 123·10⁻²**, in which **t = 3**, **q = −2**, will be represented in NF **X̃** as **X̃ = 0.123·10¹**.
+
+### Properties of the sum of signed NF numbers
+
+For the sum of signed addends in NF **X̃**, the following statements hold.
+
+If one of the addends, or the sum of addends, when summing NF **X̃**, is a number with exponent **e > e_max**, then this is a special case and such a number is called positive infinity (+∞).
+
+If one of the signed addends, or the sum of addends, when summing NF **X̃**, is a number with exponent **e < e_min** and **K̃ ≠ 0**, then this is a special case and such a number is called negative infinity (−∞).
+
+If the sum of addends in NF **X̃** is a number with exponent **e < e_min** and **K̃ < β/2**, then such a number is taken as zero. Since in NF it is impossible to distinguish ±0 from the exact zero value, 0 is a special case.
+
+### Properties of the sum of NPAt numbers
+
+For the sum of signed NPAt **X̂**, the following statements hold.
+
+If one of the signed addends, or the sum of addends in NPAt format **X̂**, is a number with rounding coefficient **q > q_max**, then this is a special case and such a number for positive **K̂** is taken as positive infinity (+∞). For negative **K̂** it is taken as negative infinity (−∞).
+
+If one of the signed addends, or the sum of addends in NPAt **X̂**, is a number with rounding coefficient **q < q_min** and **K̂ ≠ 0**, then this is a special case and such a number for positive **K̂** is called positive infinitely small (+), and for negative **K̂** — negative infinitely small (−).
+
+The sum of exact addends in NPAt **X̄** equals the exact **X̄** if their sum was not rounded. In this case, the exact **X̄** is an exact zero.
+
+### Comparison of summation results of NF numbers and numbers in NPAt format
+
+For example, Table 1 presents sums **X = X₁ + X₂** of some decimal numbers **X₁** and **X₂**, which are represented in normalized form — **X̃₁**, **X̃₂** and in NPAt format — **X̂₁** and **X̂₂**.
+
+**Table 1.** β = 10, t = 2, W = 3
+
+<table>
+  <tr>
+    <td colspan="4" align="center"><b>Sum of normalized numbers</b></td>
+    <td colspan="4" align="center"><b>Sum of numbers in NPAt format</b></td>
+  </tr>
+  <tr>
+    <td><b>1</b></td>
+    <td>X̃₁</td>
+    <td>X̃₂</td>
+    <td>X̃₁ + X̃₂</td>
+    <td>q₁ = e₁−t</td>
+    <td>X̂₁</td>
+    <td>X̂₂</td>
+    <td>X̂₁ + X̂₂</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>0.23·10⁻¹</td>
+    <td>0.01·10⁻¹</td>
+    <td>0.24·10⁻¹</td>
+    <td>-3</td>
+    <td>23·10⁻³</td>
+    <td>1.2·10⁻³</td>
+    <td>24·10⁻³</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>0.12·10³</td>
+    <td>0.23·10³</td>
+    <td>0.35·10³</td>
+    <td>1</td>
+    <td>12·10¹</td>
+    <td>23·10¹</td>
+    <td>35·10¹</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>0.12·10⁻¹</td>
+    <td>−0.12·10⁻¹</td>
+    <td>ОС(0)</td>
+    <td>-3</td>
+    <td>X̄₁ = 12·10⁻³</td>
+    <td>X̄₂ = −12·10⁻³</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>0.23·10²</td>
+    <td>−0.22·10²</td>
+    <td>0.10·10¹</td>
+    <td>0</td>
+    <td>23·10⁰</td>
+    <td>−22·10⁰</td>
+    <td>1·10⁰</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>0.12·10⁵</td>
+    <td>ОС(+∞)</td>
+    <td>0.23·10³</td>
+    <td>ОС (+∞)</td>
+    <td>3</td>
+    <td>12·10³</td>
+    <td>0.00·10³ | 12·10³</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td>0.12·10⁻³</td>
+    <td>0.23·10⁻³</td>
+    <td>0.35·10⁻³</td>
+    <td>-5 < −W</td>
+    <td>ОС (inf small)</td>
+    <td>ОС (inf small)</td>
+    <td>ОС (inf small)</td>
+  </tr>
+  <tr>
+    <td>8</td>
+    <td>0.12·10⁶</td>
+    <td>ОС(+∞)</td>
+    <td>0.23·10³</td>
+    <td>ОС (+∞)</td>
+    <td>4 > W</td>
+    <td>ОС (+∞)</td>
+    <td>0.0023·10³ | ОС (+∞)</td>
+  </tr>
+</table>
+
+### Summary
+
+1. Any normalized floating-point number **X̃ = S·0.K̃·μ**, where **K̃** — integer, can be represented approximately as NPAt **X̂ = S·K̂·μ**, or exactly as **X̄ = S·K̄·μ**, where **X̄** — integer non-rounded number, which is a subset of NPAt **X̂**.
+2. **K̂** and **K̄** — integers in the interval from 0 to **K̂_max**, which define a monotonically increasing function **X̂ = S·K̂·μ** from **X̂_min = β^(-q_max)** to **X̂_max = β^(q_max + t)**.
+3. Since **X̄** is a subset of **X̂**, in NPAt format we have two data types — approximate numbers **X̂** with a subset of exact numbers **X̄** and non-numbers (NaN).
+4. Parameters of signed NPAt — (**S**, **K**, **s**, **e**) are integers or zero, so all computations can be performed in two's complement code.
+5. If in the exact number **X̄ = S·K̄·μ** **K = 0**, then **X̄ = 0** is not a special case. In NPAt zero is defined explicitly.
+6. The presence of explicit zero in NPAt allows introducing the concepts of minus and plus infinitely small numbers, which is in demand in many mathematical proofs.
+7. In NPAt computations, normalization is not required, as the fractional part formed by shifting **K** goes beyond the register grid and **K** is rounded to the nearest integer.
+8. The computation precision **t** in NPAt is set by the user and does not affect the computation algorithm.
+9. The NPAt format allows very simple implementation of computations on CPU, yielding results identical to computations on FPU.
+
+Below is a demonstration algorithm showing how to implement summation of arbitrary input signed numbers **x₁** and **x₂** in NPAt format on an integer processor, with the same results as when summing the same numbers in float or double format.
+
+The algorithm is implemented in C++ and available at — npap-algorithm
+
+The program performs summation  
+**R = ±x₁ ± x₂·(Z−1)**.
+
+Where the number of summation cycles **Z**, input ±**x₁** and ±**x₂** can vary arbitrarily.
+
+It can be seen that the summation results in NPAt, at **t = 24** or **53** and arbitrary **Z**, are bit-identical to the summation results for the same numbers in float or double formats.
